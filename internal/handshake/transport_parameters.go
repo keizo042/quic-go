@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math/rand"
 	"sort"
 	"time"
 
@@ -203,6 +204,15 @@ func (p *TransportParameters) readNumericTransportParameter(
 func (p *TransportParameters) Marshal() []byte {
 	b := &bytes.Buffer{}
 	b.Write([]byte{0, 0}) // length. Will be replaced later
+
+	// add a greased value
+	utils.BigEndian.WriteUint16(b, uint16(27+31*rand.Intn(100)))
+	rand.Seed(time.Now().UTC().UnixNano())
+	len := rand.Intn(16)
+	randomData := make([]byte, len)
+	rand.Read(randomData)
+	utils.BigEndian.WriteUint16(b, uint16(len))
+	b.Write(randomData)
 
 	// initial_max_stream_data_bidi_local
 	p.marshalVarintParam(b, initialMaxStreamDataBidiLocalParameterID, uint64(p.InitialMaxStreamDataBidiLocal))
